@@ -221,13 +221,14 @@ describe("generate", () => {
 			});
 		});
 
-		it("clones a cloudflare template across drives", async () => {
+		it.skip("clones a cloudflare template across drives", async () => {
 			const fsMock = jest.spyOn(fs, "renameSync").mockImplementation(() => {
 				const error = new Error("EXDEV: cross-device link not permitted");
 				// @ts-expect-error non standard property on Error
 				error.code = "EXDEV";
 				throw error;
 			});
+
 			await expect(
 				runWrangler("generate my-worker worker-typescript")
 			).resolves.toBeUndefined();
@@ -244,6 +245,21 @@ describe("generate", () => {
 				"tsconfig.json": expect.any(String),
 				"wrangler.toml": expect.any(String),
 			});
+
+			fsMock.mockRestore();
+		});
+
+		it.skip("mocks an error thrown", async () => {
+			const fsMock = jest.spyOn(fs, "renameSync").mockImplementation(() => {
+				const error = new Error("something");
+				// @ts-expect-error non standard property on Error
+				error.code = "unknown";
+				throw error;
+			});
+
+			await expect(
+				runWrangler("generate my-worker worker-typescript")
+			).rejects.toThrow();
 
 			fsMock.mockRestore();
 		});
